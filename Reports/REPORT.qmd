@@ -1,0 +1,627 @@
+---
+title: "Data analysis of IPL statistics"
+author: "Group 11 : Smriti Triphati, Garima Verma, Rohit Kumar, Jayant Jha"
+output: pdf_document
+cap.location: "margin"
+always_allow_html: TRUE
+
+date: "16 Nov 2023"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(warning = F, message = F)
+```
+
+##### Under the guidance of Dr. Dootika Vats
+
+## Acknowledgement
+
+We extend our heartfelt gratitude to Professor Dootika Vats for her unwavering support and invaluable guidance throughout the development of this IPL Data Analysis project . Her expertise and mentorship have been instrumental in shaping the project's direction, refining analytical methodologies, and fostering a deeper understanding of cricket statistics. We are sincerely appreciative of her commitment to academic excellence, which has inspired us to explore and analyze the dynamic world of the Indian Premier League comprehensively. Her encouragement and insights have been instrumental, contributing significantly to the success of this project.
+
+## 1. Introduction
+
+### 1.1 About Indian Premier League (IPL)
+
+The Indian Premier League (IPL) is a professional Twenty20 cricket league in India. It was founded by the Board of Control for Cricket in India (BCCI) in 2007, with the first season taking place in 2008. The IPL has since become one of the most popular and lucrative cricket leagues globally.
+
+Key features of the IPL include:
+
+-   **Franchise-Based Teams:** The IPL consists of franchise-based teams representing different cities or regions across India. These franchises bid for players in an annual auction, creating dynamic and diverse teams.
+
+-   **T20 Format:** Matches in the IPL are played in the Twenty20 (T20) format, which is a short and fast-paced version of cricket. Each team faces a limited number of overs, and matches typically last around three hours.
+
+-   **International Player Participation:** The IPL attracts top international cricketing talent, with players from various countries participating in the league. This international flavor adds to the competitiveness and global appeal of the tournament.
+
+-   **Auctions and Transfers:** Before each season, teams participate in an auction to buy, sell, or trade players. This dynamic player market contributes to the ever-changing team compositions and strategies.
+
+-   **Global Viewership:** The IPL has a massive fan following, not just in India but around the world. The league is broadcast in numerous countries, and its fan base includes cricket enthusiasts and casual viewers alike.
+
+-   **Economic Impact:** The IPL has a significant economic impact, contributing to the growth of the cricketing industry. It generates revenue through sponsorships, broadcasting rights, ticket sales, and merchandise.
+
+The IPL has played a crucial role in popularizing T20 cricket and has become a prominent event in the international cricket calendar. It has also provided a platform for young and domestic talent to showcase their skills on a global stage. The league typically takes place annually, with the season spanning a couple of months, attracting attention from cricket fans worldwide.
+
+### 1.2 Objective
+
+The primary objective of this project is to conduct an in-depth analysis of IPL statistics spanning the years 2013 to 2023. This comprehensive analysis aims to provide users with a multifaceted understanding of the Indian Premier League, empowering them to engage in friendly competition with their peers by creating and managing their own IPL fantasy teams. Additionally, the project seeks to enhance user experience by incorporating a feature that allows users to geographically locate the countries of their favorite IPL players.
+
+#### 1.2.1 IPL Statistics Analysis:
+
+-   Collect and process detailed statistics from IPL seasons 2013-2023, encompassing player performances, team dynamics, match outcomes, and key trends.
+-   Utilize data visualization techniques to present compelling insights into team and player dynamics, highlighting patterns, trends, and significant statistical anomalies.
+
+#### 1.2.2 Fantasy Team Creation and Competition:
+
+-   Develop a user-friendly interface enabling users to create and manage their own IPL fantasy teams.
+-   Implement a competitive framework that allows users to compete with friends by assembling and refining their fantasy teams based on real-time IPL statistics.
+-   Integrate scoring mechanisms that align with actual player performances, providing an immersive and engaging fantasy cricket experience.
+
+#### 1.2.3 Geolocation Feature for Player Countries:
+
+-   Implement a feature allowing users to geographically locate the home countries of their favorite IPL players on an interactive map.
+
+-   Enhance user engagement by providing additional information about the countries, such as cricketing culture, notable achievements, and team affiliations.
+
+## 2. Scraping and Cleaning the Data
+
+The data for different purposes has been scraped from various sources.
+
+We have scraped the following data:
+
+1.  Year-wise(2013-2023) performance of individual batters in IPL
+2.  Year-wise(2013-2023) performance of individual bowlers in IPL
+3.  Final Points Table of each team from 2013-2023
+4.  Country from where each player belongs
+5.  Latitude of different countries
+
+Data sets 1, 2, 3 and 4 were scraped from the official site of ESPNCRICINFO.
+
+The 5th data set was manually entered and the data was obtained from Wikipedia.
+
+The raw datasets that we obtained from the respective webpages were not ready-to-use. There were many missing values and there also were some discrepancies in the data. We had to clean the data and also organize the data in a way that is easy to use.
+
+We used the following libraries for doing these tasks:
+
+1.  rvest
+2.  tidyverse
+3.  dplyr
+
+For example, here is a snippet of code that was used to extract data for batting performances of players in IPL2023:
+
+```{r message=FALSE, fig.show='hold'}
+
+library(rvest)
+library(tidyverse)
+library(dplyr)
+
+#DATA FOR THE YEAR 2023
+iplbat23 <- read_html("https://www.espncricinfo.com/records/tournament/batting-most-runs-career/indian-premier-league-2023-15129")
+bat23 <- iplbat23 %>% html_table()
+bat23 <- bat23[[1]]
+colnames(bat23) <- c("Player","Span","Matches","Innings","Not Outs","Runs","Highest Score","Average","Balls Faced","Strike Rate","100s","50s","0s","4s","6s")
+bat23 <- bat23[2:151,]
+bat23 <- select(bat23,-c("Span"))
+bat23 <- cbind(Rank=1:150,bat23)
+```
+
+#### 2.1 Example Data set
+
+This is the data that was obtained after running the above code:
+
+![](Data Sets/Dataset.png){width="678" height="524"}
+
+## 2.2 Description of our Data
+
+#### 2.2.1 In the batters data set for each year, the following data points are included:
+
+1.  Player name: Name of the Player.
+2.  Matches: Number of matches played by the player.
+3.  Innings: Number of Innings played by the player.
+4.  Not outs: Number of times the player has remained not-out at the end of the innings.
+5.  Runs: Total Runs scored by the player over the whole season.
+6.  Highest Score: The highest runs scored by a player in an innings over the whole.
+7.  Average: Batting average of the player. It is the total number of runs scored by a batter divided by the number of times they have lost their wicket.
+8.  Bowls Faced: Total balls faced by the player in a season.
+9.  Strike Rate: The Strike rate at which the player bats. It is number of Runs scored by a batsmen divided by the number of balls faced by the faced multiplied by 100.
+10. 100s/50s/0s: Number of centuries/half-centuries and ducks played by the player in a season.
+11. 4s/6s: Number of boundaries hit by the player in a season.
+
+#### 2.2.2 Meanwhile in the bowlers data set for each year, the following data points are included:
+
+1.  Player: The name of the player.
+2.  Matches: The number of matches played by the player.
+3.  Innings: The number of innings in which the player bowled.
+4.  Balls/Overs: The number of balls balled by the player and the number of equivalent overs.
+5.  Maidens Earned: The number of Maidens(Zero-run) overs bowled by the bowler.
+6.  Runs: The number of runs conceded by the bowler over the whole season.
+7.  Wickets: The number of wickets taken by the bowler in the whole season.
+8.  Best Bowling Innings: The best bowling figures achieved by a player in a match.
+9.  Average: The average runs conceded in an innings by a player. It is calculated by dividing the numbers of runs they have conceded by the number of wickets they have taken.
+10. Economy Rate: The rate at which the player concedes runs. It is the average number of runs conceded per over.
+11. Strike rate: The Strike rate at which the Bowler bowled. It is the the average number of balls a bowler takes to pick up a wicket.
+12. 4s/6s: The number of boundaries hit by the bowler.
+
+#### 2.2.3 In the Final Points Data set the following points are included:
+
+1.  Team Name: The name of the Team.
+2.  Matches: The number of matches played by the team in a season.
+3.  Won: The number of matches won by the team in the season.
+4.  Lost: The number of Matches Lost by the team in the season.
+5.  Tied: The number of matches for a team that ended up in a tie.
+6.  Number of Matches Abandoned: The number of Matches that were abandoned due to external factors like rain/technical issues/etc.
+7.  Points: The total number of points earned by the team.
+8.  Net Run Rate: The Net Run rate of a team. It signifies how much better a team was compared to other team in a match and the sum of all NRRs of all teams is zero.
+
+#### 2.2.4The CoordCountBat23 Data Set in addition to all data points of Batting Data Set contains the following Data set:
+
+1.  Country: The country which the batter belongs to.
+2.  Lat/Long: The Latitude and Longitude of the birthplace of the batter within his birthplace.
+
+The CoordCountBowl23 dataset has the same data points as CoordCountBat23 but for bowlers.
+
+## 3. Visualising the Dataset
+
+### 3.1 Libraries we used in this process
+
+-   ggplot2
+-   rvest
+-   tidyverse
+-   packcircles
+-   plotly
+
+### 3.2 Shiny app
+
+The Shiny App made by our group had the following features:
+
+#### 3.2.1. Visualization Tab:
+
+-   To present IPL statistics through interactive and insightful visualizations.
+
+#### 3.2.2. Auction Tab:
+
+-   To simulate the IPL auction experience for users creating their fantasy teams.
+
+#### 3.2.3. Maps Tab:
+
+-   To geographically locate the home countries of users' favorite IPL players.
+
+#### 3.2.4. Summary Tab:
+
+-   To provide a concise overview of key insights and trends.
+
+### 3.3 Generating visualisations for "2023" using our Shiny App
+
+#### 3.3.1 A Donut Chart for Average Batting Strike Rate for each TEAM
+
+```{R}
+
+#| echo: false
+# 1. Doughnut Chart for average Strike rate of each team
+
+library(ggplot2)
+library(dplyr)
+
+load("Data Sets/Batters23.RData")
+load("Data Sets/Bowlers23.RData")
+
+grp_by_team <- bat23 %>% group_by(Teams) %>% summarise(Avg_S_rate = mean(as.numeric(Strike.Rate)))
+grp_team <- unique(bat23$Teams)
+
+df <- data.frame( value= round(grp_by_team$Avg_S_rate,2),
+                  group = grp_team)
+
+# Hole size
+hsize <- 1.5
+
+df <- df %>% 
+  mutate(x = hsize)
+
+plot <- ggplot(df, aes(x = hsize, y = value, fill = group)) +
+  geom_col(color = "black") +
+  geom_text(aes(label = value ),
+            position = position_stack(vjust = 0.5)) +
+  coord_polar(theta = "y") +
+  scale_fill_brewer(palette = "GnBu") +
+  xlim(c(0.2, hsize + 0.5)) +
+  labs(tittle = "Average Batting Strike Rate for each TEAM " )+
+  theme(panel.background = element_rect(fill = "white"),
+        panel.grid = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank())
+
+show(plot)
+
+```
+
+-   **Observation:** The donut chart highlights a notable variation in the average strike rates among different teams, with some teams exhibiting higher rates and others showing lower rates.
+
+-   **Implication:** This variation suggests that teams with higher average strike rates may possess a more aggressive batting approach, potentially aiming for quick runs. The implication is that team management could strategically leverage this insight to tailor their batting line-up and overall game strategy. For teams with lower average strike rates, there might be an opportunity to explore adjustments that balance stability and aggression, enhancing the overall effectiveness of their batting performance.
+
+#### 3.3.2 A Circular packing showing Impact Batsmen based on most Runs
+
+```{R}
+#2. circular packing for Most runs
+
+# Libraries
+library(packcircles)
+library(ggplot2)
+
+# Create data
+data1 <- data.frame(Name=head(bat23$Player,50), Runs=head(bat23$Runs,50))
+
+# Generate the layout. This function return a dataframe with one line per bubble. 
+# It gives its center (x and y) and its radius, proportional of the value
+packing <- circleProgressiveLayout(data1$Runs, sizetype='area')
+
+# We can add these packing information to the initial data frame
+data1 <- cbind(data1, packing)
+
+# Check that radius is proportional to value. We don't want a linear relationship, since it is the AREA that must be proportionnal to the value
+# plot(data$radius, data$value)
+
+# The next step is to go from one center + a radius to the coordinates of a circle that
+# is drawn by a multitude of straight lines.
+dat.gg <- circleLayoutVertices(packing, npoints=50)
+
+# Make the plot
+ggplot() + 
+  
+  # Make the bubbles
+  geom_polygon(data = dat.gg, aes(x, y, group = id, fill=as.factor(id)), colour = "black", alpha = 0.6) +
+  
+  # Add text in the center of each bubble + control its size
+  geom_text(data = data1, aes(x, y, size=Runs, label = Name)) +
+  scale_size_discrete(range = c(1.5,3)) +
+  
+  # General theme:
+  theme_void() + 
+  theme(legend.position="none") +
+  coord_equal()
+
+```
+
+-   **Observation:** This packing shows Impact Batsmen based on most runs, larger bubble sizes signify players with higher run accumulations, visually emphasizing their significant impact in scoring.
+
+-   **Implication:** Team strategists can prioritize and build their innings around these impactful batsmen, leveraging their consistent run contributions for enhanced overall team performance.
+
+#### 3.3.3 A Point and Segment Plot for Batsmen VS Highest Score
+
+```{R}
+
+library(ggplot2)
+
+# Assuming bat23 is a data frame with columns Player, Highest.Score, and Teams
+# If not, please adjust accordingly
+
+# Remove asterisks from Highest.Score
+bat23$Highest.Score <- as.numeric(gsub("\\*", "", bat23$Highest.Score))
+
+# Sort the data frame by Highest.Score in descending order
+bat23 <- bat23[order(-bat23$Highest.Score), ]
+
+# Save the modified data frame
+save(bat23, file = "Batters23.RData")
+
+# Plot the top 50 players using points and sticks
+ggplot(data = head(bat23, 50), aes(x = reorder(Player, -Highest.Score), y = Highest.Score, color = Teams)) +
+  geom_point(position = position_dodge(width = 0.2), size = 3) +
+  geom_segment(aes(x = Player, xend = Player, y = 0, yend = Highest.Score), position = position_dodge(width = 0.2)) +
+  labs(title = "Highest Score", x = "Players", y = "Score") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1), legend.position = "top") +
+  scale_color_discrete(name = "Teams") +
+  theme(axis.text.x = element_text(angle = 90))
+
+```
+
+-   **Observation:** In this Point and Segment Plot, as we move from left to right, batsmen's best scores decrease. Different team colors reveal diverse team performances, showcasing individual player contributions.
+
+#### 3.3.4 A Scatter Plot for Runs conceded Vs Wickets taken by a Bowler
+
+```{R}
+
+library(ggplot2)
+
+ggplot(data = bowl23, aes(x=as.numeric(Runs), y=as.numeric(Wickets), color = Teams))+
+  geom_point() + labs(title="Runs Conceded vs Wickets Taken ", x="Runs",y="Wickets")
+
+```
+
+-   **Observation:** In the Scatter Plot for Runs Conceded vs. Wickets Taken by a bowler, a correlation is evident. As a bowler takes more wickets, there is an expected increase in runs conceded, indicating a relationship but not an exact correlation.
+
+-   **Implication:** While the correlation suggests a trade-off between wickets and runs conceded, it emphasizes the complexity of bowling performance. Teams should consider a nuanced approach, valuing wicket-taking ability alongside economical bowling to optimize overall team success.
+
+#### 3.3.5 A Line Plot for comparison between AVERAGE, STRIKE RATE and ECONOMY RATE of Bowlers.
+
+```{R}
+library(ggplot2)
+
+colors <- c("Average"="darkred","Strike Rate"= "steelblue", "Economy Rate"="purple")
+ggplot(data = bowl23, aes(x=as.numeric(Rank))) + 
+  geom_line(aes(y = as.numeric(Average), color ="Average"),size=1) + 
+  geom_line(aes(y = as.numeric(Strike.Rate), color="Strike Rate"), size= 1) +
+  geom_line(aes(y= as.numeric(Economy.Rate), color="Economy Rate"),size=1 ) +
+  labs(title="Rank Wise Bowling Comparison", x="Rank", y= " ",color="legend") +
+  scale_color_manual(values=colors)
+```
+
+-   **Observation:** There is a positive correlation between a bowler's rank in terms of wickets taken, their strike rate, and average.
+
+-   **Implication:** Higher-ranked bowlers not only take more wickets but also achieve them with better efficiency (lower strike rate) and effectiveness (higher average).
+
+#### 3.3.6 A Density plot for comparing Average of Batsmen among different TEAMS
+
+```{R}
+
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+
+a1 <- tibble(bat23)
+a2 <- a1%>% filter(Teams %in% c("CSK","RR"))
+ggplot(a2,aes(x=as.numeric(Average),fill= Teams))+
+  geom_density(alpha=0.2) +
+  labs(x= "Average", y= "Density",title="Density plot")
+
+```
+
+-   **Observation:** Teams with a large number of players boasting good averages have a higher probability of performing well.
+
+-   **Implication:** The team's overall batting performance is strongly influenced by the presence of players with consistently good averages.
+
+#### 3.3.7 A Scatter Plot for Balls Bowled Vs Wickets taken by a Bowler
+
+```{R}
+
+library(ggplot2)
+
+ggplot(bowl23,aes(x=as.numeric(Balls),y=as.numeric(Wickets),color = Teams))+
+  geom_point()+
+  labs(title="Balls Bowled vs Wickets Taken",x="Balls Bowled",y="Wicket Taken")
+```
+
+-   **Observation:** A moderate correlation is observed between the number of balls bowled by a bowler and the wickets taken.
+
+-   **Implication:** Bowlers who bowl more balls tend to have a higher probability of taking wickets, highlighting the importance of consistency and persistence in bowling.
+
+#### 3.3.8 A Scatter Plot for Balls Faced Vs Runs Scored by a Batsmen
+
+```{R}
+library(ggplot2)
+
+ggplot(data = bat23, aes(y=as.numeric(Runs), x=as.numeric(Balls.Faced), size=as.numeric(Average), color = Teams))+
+  geom_point() + labs(title=" Balls faced vs Runs Scored", y="Runs Scored",x="Balls Faced") + guides(size=F)
+
+```
+
+-   **Observation:** A strong correlation exists between the total number of balls faced and the total runs scored.
+
+-   **Implication:** Batsmen who face more balls tend to contribute significantly to the team's total runs.
+
+#### 3.3.9 A Scatter Plot for No. of Boundaries Vs Strike Rate of a Batsmen
+
+```{R}
+library(ggplot2)
+
+ggplot(data = bat23, aes(x=as.numeric(X4s)+as.numeric(X6s), y=as.numeric(Strike.Rate), color = Teams))+
+  geom_point(alpha=0.7)+guides(size=F) + labs(title="No. of boundaries vs Strike rates ", x= "No. of boundaries", y= "Strike rate")
+
+
+```
+
+-   **Observation:** Players with more boundaries tend to have a better strike rate when they have faced a significant number of balls.
+
+-   **Implication:** Aggressive and boundary-hitting players, when given sufficient opportunities, contribute to an enhanced team strike rate.
+
+#### 3.3.10 A Scatter Plot for Runs Scored Vs Strike Rate of a Batsmen
+
+```{R}
+library(ggplot2)
+
+ggplot(data = bat23, aes(x=as.numeric(Runs),y=as.numeric(Strike.Rate), size=as.numeric(Average), color = Teams))+
+  geom_point() + labs(title="Runs Scored Vs Strike Rate ", x="Runs Scored",y="Strike Rate") + guides(size=F)
+
+```
+
+**Observation:**
+
+-   Batsmen with fewer runs initially exhibit diverse strike rates, ranging from very high to very low.
+
+-   As runs increase, there is a noticeable stabilization in strike rates.
+
+**Implications:**
+
+-   Early Innings Dynamics: Lower run accumulations showcase varied playing styles with diverse strike rates.
+
+-   Established Batsmen: Higher run-scorers display a more uniform and predictable approach as indicated by stabilized strike rates.
+
+-   Experience Matters: The trend suggests that experienced batsmen develop a consistent batting strategy.
+
+This pattern reveals the evolving dynamics of a batsman's performance and provides insights for strategic decisions related to player roles and team composition.
+
+#### 3.3.11 A Bar Plot for Comparison Between Economy Rates of Top Bowlers
+
+```{R}
+
+library(plotly)
+
+# Assuming bowl23 is a data frame with columns Player, Economy.Rate, and Teams
+# If not, please adjust accordingly
+
+# Convert Economy.Rate to numeric
+bowl23$Economy.Rate <- as.numeric(bowl23$Economy.Rate)
+
+# Sort the data frame by Economy.Rate in increasing order
+bowl23 <- bowl23[order(bowl23$Economy.Rate), ]
+
+# Reverse the order of the data frame
+bowl23 <- bowl23[rev(seq_len(nrow(bowl23))), ]
+
+# Create the bar plot
+fig <- plot_ly(
+  x = bowl23$Economy.Rate[1:20],
+  y = bowl23$Player[1:20],
+  type = 'bar',
+  orientation = 'h',
+  color = bowl23$Teams[1:20]
+)
+
+fig
+
+```
+
+-   **Observation:** Teams with lower economy rates among their bowlers tend to have better overall team performance.
+
+-   **Implication:** Bowling efficiency, as indicated by a lower economy rate, is a key factor contributing to the team's success.
+
+### 3.4 Conclusion
+
+-   **Summary:** These observations collectively reveal several key relationships within the dataset, emphasizing the interconnected nature of individual player performances and their impact on overall team success.
+
+-   **Recommendation:** Consider leveraging these insights for strategic decision-making, player selection, and team composition to enhance performance in future seasons.
+
+By presenting your observations in a structured and clear manner, you convey the significance of the relationships observed in your project data. This approach helps readers understand the implications and potential strategies that can be derived from the analyzed patterns.
+
+## 4. Summary Tab
+
+A "Summary Tab" is a feature within out App that provides users with a convenient way to access summarized information about bowlers or batsmen for a specific year. The tab is designed to enhance user experience and make it easy for IPL enthusiasts to retrieve relevant data. Here's how it functions :
+
+1.  **Year Selection -**
+
+    -   The user is presented with a drop-down to select the desired year from 2013-2023. This allows them to focus on the specific time period they are interested in.
+
+    -   The summary tab is dynamic and adjusts its content based on the selected year.
+
+2.  **Batsman/Bowler Selection -**
+
+    -   The User can select if he/she wants to see information about a Batsman or a Bowler.
+
+3.  **Search Bar -**
+
+    -   A search bar is provided to allow users to type in the names of the bowler or batsman they want information about. This feature caters to users who are interested in individual player statistics.
+
+4.  **Information Display -**
+
+    -   Once the user selects a year and enters the name of the player, the summary tab displays relevant statistical information for the specified player in the chosen year.
+
+[Running Code]{.underline}
+
+Below is the "UI Code" that is used to structure the summary tab -
+
+```{r}
+#| eval: false
+tabPanel("Summary",sidebarPanel(h1("Stats"),h4("Data of Players Yearwise"),
+selectInput("years","Year:",
+c("2013","2014","2015","2016","2017","2018","2019","2020",
+  "2021","2022","2023")),selectInput("cricketer","Type of Cricketer:",
+c("Batsman","Bowler")),
+),
+mainPanel(dataTableOutput("sum.data")),
+)
+```
+
+Below is the "Server Code" that outputs the summary tab section -
+
+```{r}
+#| eval: false
+  output$sum.data <- renderDataTable({
+    if(input$cricketer == "Batter"){
+      switch(input$years, 
+             "2013" = bat13,"2014" = bat14,"2015" = bat15,"2016" = bat16,
+             "2017" = bat17,"2018" = bat18,"2019" = bat19,"2020" = bat20,
+             "2021" = bat21,"2022" = bat22,"2023" = bat23,)}
+    else{
+      switch(input$years, 
+             "2013" = bowl13,"2014" = bowl14,"2015" = bowl15,"2016" = bowl16,
+             "2017" = bowl17,"2018" = bowl18,"2019" = bowl19,"2020" = bowl20,
+             "2021" = bowl21,"2022" = bowl22,"2023" = bowl23,)}
+  })
+```
+
+Upon running the above code, you'll see this on your window -
+
+## 5. Maps
+
+A "Maps Tab" using Leaflet library displays the nationality of batsmen and bowlers. This is visually engaging and an informative feature for users interested in IPL. The tab consists of -
+
+1.  **Batsmen/Bowlers -**
+
+    -   Here, you can choose if you want to see the nationalities of 2023 IPL Purple hats or Orange hats!
+
+2.  **Country Selection -**
+
+    -   You can filter player nationality visualization country-wise. You can choose from among 10 countries.
+
+    -   The names of the players will be displayed on the Markers, so that it would be easier for the user to locate the player.
+
+3.  **Map Display -**
+
+    -   The Map of the selected country with the number of players in that country will be displayed on the top.
+
+The data set to build the Map was -
+
+```{r}
+#| echo: false
+load("Data Sets/CoordCountBat23.RData")
+print((batmap23[1:10,]))
+```
+
+[Running Code]{.underline}
+
+Libraries Used - maps and leaflet
+
+The code below was used to make the Map -
+
+```{r}
+#| eval: false
+  output$mymap <- renderLeaflet({
+    leaflet(dataset() %>%
+              dplyr::filter(
+                Country == input$radio,
+              )) %>%
+      addTiles() %>% addMarkers(lat = ~Lat, lng=~Long) %>%
+      addLabelOnlyMarkers(lat = ~Lat, lng=~Long, label = ~Player, 
+      labelOptions = labelOptions(noHide = T, direction = 'top', 
+      textOnly = T) )
+    
+  })
+
+
+```
+
+The following code will give this Output -
+![](Data Sets/Map.png){width="678" height="400"}
+
+## 6. Auction
+
+The Auction tab is a special tab in our app that allows user to simulate an auction. There will be two teams and the players will be allowed to name their own team.
+
+Eleven random batters and eleven random Bowlers will be randomly chosen among the players who played the 2023 edition of IPL. Then the 22 players will be displayed to the the two players.
+
+Each Team will have a starting purse of 50 lakhs. Before the start of Auction for each player, the teams will have to enter how much they want to want to bid for the player. The strike rate and average of the players will also be displayed along with the name of the players so that the teams can make an informed decision.
+
+Once the teams have entered the prices, you have to press the 'Start Auction' button. The player will be sold to the team which has a higher bid.
+
+A team cannot buy more than 11 players. After both the teams have bought their eleven players, the probabilities of their teams winning will be displayed.
+
+###  Calculation of Probability:
+
+For each team, we calculate their 'batting score' and their 'bowling score'.
+
+The Batting strike rate is calculated by first normalizing the strike rates of all the batsmen between 0 and 1. For the Bowling Strike rate we do the same but we subtract the final strike rates by 1 to account for the fact that for a bowler the lower the strike rate, the better.
+
+Then for each team we take average of their bowling scores and batting scores. Then we sum the batting scores and the bowling scores to get the "Team Score".
+
+The final Probability for a Team, say Team 1, will be : (Team Score 1)/(Team Score 1 + Team Score 2)
+
+Below is a picture of the auction tab before the start of the game-
+![](Data Sets/Auction_tab.png){width="678" height="450"}
+
+
+## 7. Conclusion
+
+In this report we have done a comprehensive analysis of the data of Indian Premier League and drew numerous conclusions from it. We also made a fun game where player could test their knowledge about IPL and their auction skills.
+
+## 8. References
+
+For Most of the data: <https://www.espncricinfo.com/>
